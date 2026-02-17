@@ -34,6 +34,7 @@ const schema: any = z.object({
     email: z.email("Email is required"),
     password: passwordSchema,
     confirmPassword: z.string(),
+    captchaToken: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
     error: "The passwords don't match!",
     path: ["confirmPassword"]
@@ -43,34 +44,27 @@ export default function RegisterPage() {
 
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>("");
 
     const form = useForm({
         defaultValues: {
             username: "",
             email: "",
             password: "",
-            confirmPassword: ""
+            confirmPassword: "",
+            captchaToken: "asd"
         },
         validators: {
             onSubmit: schema,
         },
         onSubmit: async ({ value }) => {
             setLoading(true);
-            console.log(value);
-            toast("You submitted the following values:", {
-                description: (
-                    <pre className="bg-foreground text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-                        <code>{JSON.stringify(value, null, 2)}</code>
-                    </pre>
-                ),
-                position: "bottom-right",
-                classNames: {
-                    content: "flex flex-col gap-2",
-                },
-                style: {
-                    "--border-radius": "calc(var(--radius)  + 4px)",
-                } as React.CSSProperties,
+            fetch("/api/auth/register", {method: "POST", body: JSON.stringify(value), headers: {"Content-Type": "application/json"}
+            }).then((res) => res.json()).then((data) => {
+                setLoading(false);
+                toast(data.message)
             })
+
         }
     })
 

@@ -1,8 +1,5 @@
+import { redirect } from "next/navigation";
 
 export default function Page() {
-return (
-    <div>
-        <p>Openveins...</p>
-    </div>
-)
+    return redirect("/auth/login")
 }

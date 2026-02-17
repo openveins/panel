@@ -13,40 +13,35 @@ import * as z from "zod"
 
 const formScheme = z.object({
     email: z.email("Email is required"),
-    password: z.string()
+    password: z.string(),
+    captcha: z.string()
 })
 
 export default function LoginPage() {
 
     const [isLoading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>("");
 
     const form = useForm({
         defaultValues: {
             email: "",
-            password: ""
+            password: "",
+            captcha: "asdasd"
         },
         validators: {
             onSubmit: formScheme,
         },
         onSubmit: async ({ value }) => {
             setLoading(true);
-            console.log(value);
-            toast("You submitted the following values:", {
-                description: (
-                    <pre className="bg-foreground text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-                        <code>{JSON.stringify(value, null, 2)}</code>
-                    </pre>
-                ),
-                position: "bottom-right",
-                classNames: {
-                    content: "flex flex-col gap-2",
-                },
-                style: {
-                    "--border-radius": "calc(var(--radius)  + 4px)",
-                } as React.CSSProperties,
+            fetch("/api/auth/login", {method: "POST", body: JSON.stringify(value), headers: {"Content-Type": "application/json"}
+            }).then((res) => res.json()).then((data) => {
+                setLoading(false);
+                toast.success(data.message)
             })
+
         }
     })
+
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center">
