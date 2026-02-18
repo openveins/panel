@@ -50,6 +50,7 @@ export default function RegisterPage() {
     const [isLoading, setLoading] = useState<boolean>(false);
     const [captchaError, setCaptchaError] = useState<boolean>(false);
 
+    // TODO: Fix this nonesense.
     //@ts-expect-error
     const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
     //@ts-expect-error
