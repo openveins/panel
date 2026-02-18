@@ -19,7 +19,7 @@ interface AuthContextValue {
     isLoading: boolean;
     isAuthenticated: boolean;
     login: (email: string, password: string, captcha: string | null) => Promise<void>;
-    //register: (email: string, password: string, name: string) => Promise<void>;
+    register: (username: string, email: string, password: string, captcha: string | null) => Promise<void>;
     logout: () => void;
     //me: () => Promise<void>;
 }
@@ -80,7 +80,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const error = e as AxiosError;
                 log("Error occured",
                     <pre>
-                        <code>{JSON.stringify(error.message)}</code>
+                        <code>{JSON.stringify(error.response?.data)}</code>
+                    </pre>
+                )
+                return;
+            } else {
+                return console.error(e);
+            }
+        }
+    }, [saveToken])
+
+    const register = useCallback(async (username: string, email: string, password: string, captcha: string | null) => {
+        try {
+            log("Register request...");
+            const response = await axios.post("/api/auth/register", { headers: { "Content-Type": "application/json" }, username, email, password, captcha })
+            const { token } = response.data;
+            saveToken(token);
+            log("Success!", <p>Token - {token}</p>)
+            router.push("/dashboard")
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const error = e as AxiosError;
+                log("Error occured",
+                    <pre>
+                        <code>{JSON.stringify(error.response?.data)}</code>
                     </pre>
                 )
                 return;
@@ -100,7 +123,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         login,
-        logout
+        logout,
+        register
     }
 
     return(

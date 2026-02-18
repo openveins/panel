@@ -1,6 +1,7 @@
 "use client"
 
 import { useFeatures } from "@/components/context/AppConfigContext";
+import { useAuth } from "@/components/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty";
@@ -51,6 +52,8 @@ export default function RegisterPage() {
 
     //@ts-expect-error
     const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
+    //@ts-expect-error
+    const {register} = useAuth();
 
     if(!signupEnabled){
         return(
@@ -85,11 +88,14 @@ export default function RegisterPage() {
         },
         onSubmit: async ({ value }) => {
             setLoading(true);
-            fetch("/api/auth/register", {method: "POST", body: JSON.stringify(value), headers: {"Content-Type": "application/json"}
-            }).then((res) => res.json()).then((data) => {
-                setLoading(false);
-                toast(data.message)
-            })
+            // fetch("/api/auth/register", {method: "POST", body: JSON.stringify(value), headers: {"Content-Type": "application/json"}
+            // }).then((res) => res.json()).then((data) => {
+            //     setLoading(false);
+            //     toast(data.message)
+            // })
+
+            await register(value.username, value.email, value.password, value.captchaToken);
+            setLoading(false);
 
         }
     })
