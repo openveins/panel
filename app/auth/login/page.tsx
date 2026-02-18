@@ -1,6 +1,7 @@
 "use client"
 
 import { useFeatures } from "@/components/context/AppConfigContext";
+import { useAuth } from "@/components/context/AuthContext";
 import { useLogger } from "@/components/context/LoggerContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,6 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import { useForm, useStore } from "@tanstack/react-form";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
 import * as z from "zod"
 
 const formScheme = z.object({
@@ -24,17 +24,14 @@ export default function LoginPage() {
 
     const [isLoading, setLoading] = useState<boolean>(false);
     const [captchaError, setCaptchaError] = useState<boolean>(false);
-    const [error, setError] = useState<string>("");
-
 
     // TODO: Fix this nonesense
-    //@ts-ignore
-    const {log} = useLogger();
-
-
-    // TODO: Fix this nonesense
-    //@ts-ignore
+    const {log} = useLogger("/auth/login");
+    //@ts-expect-error
+    const {login} = useAuth();
+    //@ts-expect-error
     const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
+
 
     const form = useForm({
         defaultValues: {
@@ -57,19 +54,23 @@ export default function LoginPage() {
                     </pre> 
                 )
 
-            fetch("/api/auth/login", {
-                method: "POST", body: JSON.stringify(value), headers: { "Content-Type": "application/json" }
-            }).then((res) => res.json()).then((data) => {
-                setLoading(false);
-                // Developement only logs.
-                log("Got response",
-                    <pre className="bg-foreground text-white p-2 overflow-auto">
-                        <code>
-                            {JSON.stringify(data, null, 2)}
-                        </code>
-                    </pre> 
-                )
-            })
+            await login(value.email, value.password, value.captcha)
+
+            setLoading(false);
+
+            // fetch("/api/auth/login", {
+            //     method: "POST", body: JSON.stringify(value), headers: { "Content-Type": "application/json" }
+            // }).then((res) => res.json()).then((data) => {
+            //     setLoading(false);
+            //     // Developement only logs.
+            //     log("Got response",
+            //         <pre className="bg-foreground text-white p-2 overflow-auto">
+            //             <code>
+            //                 {JSON.stringify(data, null, 2)}
+            //             </code>
+            //         </pre> 
+            //     )
+            // })
             
 
         }

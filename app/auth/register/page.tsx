@@ -48,9 +48,8 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setLoading] = useState<boolean>(false);
     const [captchaError, setCaptchaError] = useState<boolean>(false);
-    const [error, setError] = useState<string>("");
 
-    //@ts-ignore
+    //@ts-expect-error
     const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
 
     if(!signupEnabled){
@@ -171,7 +170,7 @@ export default function RegisterPage() {
                                                     aria-invalid={isInvalid}
                                                     type={showPassword ? "text" : "password"}
                                                 />
-                                                <Button type="button" onClick={(e) => {setShowPassword(!showPassword)}} variant={"ghost"}>{!showPassword ? <Eye/> : <EyeClosed/>}</Button>
+                                                <Button type="button" onClick={() => {setShowPassword(!showPassword)}} variant={"ghost"}>{!showPassword ? <Eye/> : <EyeClosed/>}</Button>
                                             </div>
                                             {isInvalid && (
                                                 <FieldError errors={field.state.meta.errors} />
@@ -215,7 +214,7 @@ export default function RegisterPage() {
                                                 siteKey={turnstileSiteKey} 
                                                 options={{ size: "flexible" }} 
                                                 onSuccess={(e) => { field.setValue(e) }}
-                                                onError={(e) => {setCaptchaError(true)}} 
+                                                onError={() => {setCaptchaError(true)}} 
                                                 />
                                         )
                                     }}
