@@ -1,11 +1,14 @@
 "use client"
 
+import { useFeatures } from "@/components/context/AppConfigContext";
+import { useLogger } from "@/components/context/LoggerContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useForm } from "@tanstack/react-form";
+import { Turnstile } from "@marsidev/react-turnstile";
+import { useForm, useStore } from "@tanstack/react-form";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -20,28 +23,59 @@ const formScheme = z.object({
 export default function LoginPage() {
 
     const [isLoading, setLoading] = useState<boolean>(false);
+    const [captchaError, setCaptchaError] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
+
+
+    // TODO: Fix this nonesense
+    //@ts-ignore
+    const {log} = useLogger();
+
+
+    // TODO: Fix this nonesense
+    //@ts-ignore
+    const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
 
     const form = useForm({
         defaultValues: {
             email: "",
             password: "",
-            captcha: "asdasd"
+            captcha: ""
         },
         validators: {
             onSubmit: formScheme,
         },
         onSubmit: async ({ value }) => {
             setLoading(true);
-            fetch("/api/auth/login", {method: "POST", body: JSON.stringify(value), headers: {"Content-Type": "application/json"}
+
+            // Developement only logs.
+            log("Sent request",
+                    <pre className="bg-foreground text-white w-full p-2">
+                        <code>
+                            {JSON.stringify(value, null, 2)}
+                        </code>
+                    </pre> 
+                )
+
+            fetch("/api/auth/login", {
+                method: "POST", body: JSON.stringify(value), headers: { "Content-Type": "application/json" }
             }).then((res) => res.json()).then((data) => {
                 setLoading(false);
-                toast.success(data.message)
+                // Developement only logs.
+                log("Got response",
+                    <pre className="bg-foreground text-white p-2 overflow-auto">
+                        <code>
+                            {JSON.stringify(data, null, 2)}
+                        </code>
+                    </pre> 
+                )
             })
+            
 
         }
     })
 
+    const isCaptchaSet = useStore(form.store, (state) => state.values.captcha);
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center">
@@ -102,13 +136,34 @@ export default function LoginPage() {
                                     )
                                 }}
                             />
+                            {turnstileEnabled &&
+                                <form.Field name="captcha"
+                                    children={(field) => {
+                                        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                                        return (
+                                            <Turnstile 
+                                                id={field.name} 
+                                                onBlur={field.handleBlur} 
+                                                aria-invalid={isInvalid} 
+                                                siteKey={turnstileSiteKey} 
+                                                options={{ size: "flexible" }} 
+                                                onSuccess={(e) => { field.setValue(e) }}
+                                                onError={(e) => {setCaptchaError(true)}} 
+                                                />
+                                        )
+                                    }}
+                                />
+                            }
                         </FieldGroup>
-                        <Button type="submit">{isLoading ? <Spinner/> : "Login" }</Button>
+                        {captchaError && <p className="text-xs text-red-700">It seems like the captcha failed or had some other problem. Please refresh the page.</p>}
+                        <Button type="submit" disabled={isCaptchaSet == ""}>{isLoading ? <Spinner /> : "Login"}</Button>
                     </form>
                 </CardContent>
-                                <CardFooter>
-                    <Link href={"/auth/register"} className="underline duration-200 text-primary hover:text-primary/80">Register?</Link>
-                </CardFooter>
+                {signupEnabled && 
+                    <CardFooter>
+                        <Link href={"/auth/register"} className="underline duration-200 text-primary hover:text-primary/80">Register?</Link>
+                    </CardFooter>
+                }
             </Card>
         </div>
     )

@@ -1,12 +1,15 @@
 "use client"
 
+import { useFeatures } from "@/components/context/AppConfigContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { useForm } from "@tanstack/react-form";
-import { Eye, EyeClosed } from "lucide-react";
+import { Eye, EyeClosed, UserLock } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -44,7 +47,31 @@ export default function RegisterPage() {
 
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setLoading] = useState<boolean>(false);
+    const [captchaError, setCaptchaError] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
+
+    //@ts-ignore
+    const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
+
+    if(!signupEnabled){
+        return(
+            <div className="w-full min-h-screen flex items-center justify-center">
+                <Empty>
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <UserLock />
+                        </EmptyMedia>
+                        <EmptyTitle>Sign ups</EmptyTitle>
+                        <EmptyDescription>Sign ups are disabled by the instance administrator.</EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent>
+                        If you already have an account
+                        <Button asChild><Link href={"/auth/login"}>Login</Link></Button>
+                    </EmptyContent>
+                </Empty>
+            </div>
+        )
+    }
 
     const form = useForm({
         defaultValues: {
@@ -52,7 +79,7 @@ export default function RegisterPage() {
             email: "",
             password: "",
             confirmPassword: "",
-            captchaToken: "asd"
+            captchaToken: ""
         },
         validators: {
             onSubmit: schema,
@@ -176,7 +203,26 @@ export default function RegisterPage() {
                                     )
                                 }}
                             />
+                            {turnstileEnabled &&
+                                <form.Field name="captchaToken"
+                                    children={(field) => {
+                                        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                                        return (
+                                            <Turnstile 
+                                                id={field.name} 
+                                                onBlur={field.handleBlur} 
+                                                aria-invalid={isInvalid} 
+                                                siteKey={turnstileSiteKey} 
+                                                options={{ size: "flexible" }} 
+                                                onSuccess={(e) => { field.setValue(e) }}
+                                                onError={(e) => {setCaptchaError(true)}} 
+                                                />
+                                        )
+                                    }}
+                                />
+                            }
                         </FieldGroup>
+                        {captchaError && <p className="text-xs text-red-700">It seems like the captcha failed or had some other problem. Please refresh the page.</p>}
                         <Button className="w-full" type="submit">{isLoading? <Spinner/> : "Register"}</Button>
                     </form>
                 </CardContent>
