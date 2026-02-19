@@ -1,6 +1,7 @@
 "use client"
 
 import { useFeatures } from "@/components/context/AppConfigContext";
+import { useAuth } from "@/components/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty";
@@ -48,10 +49,12 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setLoading] = useState<boolean>(false);
     const [captchaError, setCaptchaError] = useState<boolean>(false);
-    const [error, setError] = useState<string>("");
 
-    //@ts-ignore
+    // TODO: Fix this nonesense.
+    //@ts-expect-error
     const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
+    //@ts-expect-error
+    const {register} = useAuth();
 
     if(!signupEnabled){
         return(
@@ -86,11 +89,14 @@ export default function RegisterPage() {
         },
         onSubmit: async ({ value }) => {
             setLoading(true);
-            fetch("/api/auth/register", {method: "POST", body: JSON.stringify(value), headers: {"Content-Type": "application/json"}
-            }).then((res) => res.json()).then((data) => {
-                setLoading(false);
-                toast(data.message)
-            })
+            // fetch("/api/auth/register", {method: "POST", body: JSON.stringify(value), headers: {"Content-Type": "application/json"}
+            // }).then((res) => res.json()).then((data) => {
+            //     setLoading(false);
+            //     toast(data.message)
+            // })
+
+            await register(value.username, value.email, value.password, value.captchaToken);
+            setLoading(false);
 
         }
     })
@@ -171,7 +177,7 @@ export default function RegisterPage() {
                                                     aria-invalid={isInvalid}
                                                     type={showPassword ? "text" : "password"}
                                                 />
-                                                <Button type="button" onClick={(e) => {setShowPassword(!showPassword)}} variant={"ghost"}>{!showPassword ? <Eye/> : <EyeClosed/>}</Button>
+                                                <Button type="button" onClick={() => {setShowPassword(!showPassword)}} variant={"ghost"}>{!showPassword ? <Eye/> : <EyeClosed/>}</Button>
                                             </div>
                                             {isInvalid && (
                                                 <FieldError errors={field.state.meta.errors} />
@@ -215,7 +221,7 @@ export default function RegisterPage() {
                                                 siteKey={turnstileSiteKey} 
                                                 options={{ size: "flexible" }} 
                                                 onSuccess={(e) => { field.setValue(e) }}
-                                                onError={(e) => {setCaptchaError(true)}} 
+                                                onError={() => {setCaptchaError(true)}} 
                                                 />
                                         )
                                     }}

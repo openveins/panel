@@ -1,7 +1,6 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { Spinner } from "../ui/spinner";
 
 const AppConfigContext = createContext(null)
 
