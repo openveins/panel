@@ -5,6 +5,7 @@ import axios, { AxiosError } from "axios"
 import { useLogger } from "./LoggerContext";
 import { isTokenExpired, parseJWT } from "@/lib/jwt";
 import { useRouter } from "next/navigation";
+import Codeblock from "../ui/codeblock";
 
 interface User {
     username: string;
@@ -47,6 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (payload) {
             setUser({ id: payload.sub, username: payload.username, email: payload.email, role: payload.role })
         }
+
+        log("User logged in:", <Codeblock>{JSON.stringify(payload, null, 2)}</Codeblock>)
+
     }, []);
 
     const clearToken = useCallback(() => {
@@ -78,11 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
-                log("Error occured",
-                    <pre>
-                        <code>{JSON.stringify(error.response?.data)}</code>
-                    </pre>
-                )
+                log("Error occured", <Codeblock>{JSON.stringify(error.response?.data, null, 2)}</Codeblock>)
                 return;
             } else {
                 return console.error(e);
@@ -101,11 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
-                log("Error occured",
-                    <pre>
-                        <code>{JSON.stringify(error.response?.data)}</code>
-                    </pre>
-                )
+                log("Error occured", <Codeblock>{JSON.stringify(error.response?.data, null, 2)}</Codeblock>)
                 return;
             } else {
                 return console.error(e);

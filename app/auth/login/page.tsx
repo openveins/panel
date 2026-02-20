@@ -5,6 +5,7 @@ import { useAuth } from "@/components/context/AuthContext";
 import { useLogger } from "@/components/context/LoggerContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import Codeblock from "@/components/ui/codeblock";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -46,33 +47,11 @@ export default function LoginPage() {
             setLoading(true);
 
             // Developement only logs.
-            log("Sent request",
-                    <pre className="bg-foreground text-white w-full p-2">
-                        <code>
-                            {JSON.stringify(value, null, 2)}
-                        </code>
-                    </pre> 
-                )
+            log("Sent request",<Codeblock>{JSON.stringify(value, null, 2)}</Codeblock>)
 
             await login(value.email, value.password, value.captcha)
 
-            setLoading(false);
-
-            // fetch("/api/auth/login", {
-            //     method: "POST", body: JSON.stringify(value), headers: { "Content-Type": "application/json" }
-            // }).then((res) => res.json()).then((data) => {
-            //     setLoading(false);
-            //     // Developement only logs.
-            //     log("Got response",
-            //         <pre className="bg-foreground text-white p-2 overflow-auto">
-            //             <code>
-            //                 {JSON.stringify(data, null, 2)}
-            //             </code>
-            //         </pre> 
-            //     )
-            // })
-            
-
+            setLoading(false);            
         }
     })
 
