@@ -110,7 +110,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [saveToken])
 
     const logout = useCallback(() => {
+        setLoading(true);
         clearToken();
+        router.push("/auth/login")
+        setLoading(false);
     }, [clearToken]);
 
     const value = {

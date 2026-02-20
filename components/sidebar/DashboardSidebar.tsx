@@ -1,10 +1,16 @@
 "use client";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar";
 import Link from "next/link";
+
+import { Archive, ChevronsUpDown, Clock3, Diamond, FolderTree, HardDrive, LayoutDashboard, LayoutTemplate, LogOut, Settings, Shield, SquareChevronRight, Users } from "lucide-react";
+
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar";
 import { Card, CardContent } from "../ui/card";
 import { UsageBar } from "../ui/usage-bars";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import Avatar from "boring-avatars";
+
 import { useAuth } from "../context/AuthContext";
-import { Archive, Clock3, Diamond, FolderTree, HardDrive, LayoutDashboard, LayoutTemplate, Settings, Shield, SquareChevronRight, User, Users } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 let data = {
     "groups": [
@@ -26,7 +32,7 @@ let data = {
             "label": "Management",
             "items": [
                 { "label": "Users", "href": "/dashboard", "icon": Users, "badge": { "value": "24", "className": "bg-foreground/20" } },
-                { "label": "File Manager", "href": "/dashboard", "icon": FolderTree},
+                { "label": "File Manager", "href": "/dashboard", "icon": FolderTree },
                 { "label": "Console", "href": "/dashboard", "icon": SquareChevronRight },
                 { "label": "Schedules", "href": "/dashboard", "icon": Clock3 },
                 { "label": "Backups", "href": "/dashboard", "icon": Archive }
@@ -50,7 +56,8 @@ let data = {
 
 export function DashboardSidebar() {
     //@ts-expect-error
-    const {user, isLoading} = useAuth();
+    const { user, isLoading, logout, isAuthenticated } = useAuth();
+    const isMobile = useIsMobile();
     return (
         <Sidebar>
             <SidebarHeader className="text-center font-bold text-xl">
@@ -61,19 +68,19 @@ export function DashboardSidebar() {
                     <SidebarGroup key={index}>
                         <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
                         <SidebarGroupContent>
-                                <SidebarMenu>
-                                    {group.items.map((item, index) => (
-                                        <SidebarMenuItem key={index}>
-                                            <SidebarMenuButton asChild>
-                                                <Link href={item.href}>
-                                                    <item.icon />
-                                                    {item.label}
-                                                </Link>
-                                            </SidebarMenuButton>
-                                            {item.badge != null && <SidebarMenuBadge className={item.badge.className}>{item.badge.value}</SidebarMenuBadge> }
-                                        </SidebarMenuItem>
-                                    ))}
-                                </SidebarMenu>
+                            <SidebarMenu>
+                                {group.items.map((item, index) => (
+                                    <SidebarMenuItem key={index}>
+                                        <SidebarMenuButton asChild>
+                                            <Link href={item.href}>
+                                                <item.icon />
+                                                {item.label}
+                                            </Link>
+                                        </SidebarMenuButton>
+                                        {item.badge != null && <SidebarMenuBadge className={item.badge.className}>{item.badge.value}</SidebarMenuBadge>}
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
                         </SidebarGroupContent>
                     </SidebarGroup>
                 ))}
@@ -83,7 +90,7 @@ export function DashboardSidebar() {
                         <Card>
                             <CardContent className="flex flex-col gap-2">
                                 {data.nodesHealth.map((node, index) => (
-                                    <UsageBar title={node.name} usage={node.value} key={index}/>
+                                    <UsageBar title={node.name} usage={node.value} key={index} />
                                 ))}
                             </CardContent>
                         </Card>
@@ -91,12 +98,33 @@ export function DashboardSidebar() {
                 </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
-                {!isLoading &&
+                {(!isLoading && isAuthenticated) &&
                     <SidebarMenu>
                         <SidebarMenuItem>
-                            <SidebarMenuButton>
-                                <User/> {user.username}
-                            </SidebarMenuButton>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <SidebarMenuButton size={"lg"}>
+                                        <Avatar name={user.username} colors={["#beed80", "#59d999", "#31ada1", "#51647a", "#453c5c"]} variant="marble" square className="size-16" />
+                                        <div className="flex flex-col">
+                                            <span className="truncate font-medium">{user.username}</span>
+                                            <span className="truncate text-xs">{user.email}</span>
+                                        </div>
+                                        <ChevronsUpDown className="ml-auto size-4" />
+                                    </SidebarMenuButton>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    side={isMobile ? "bottom" : "right"}
+                                    align="end"
+                                    sideOffset={4}
+                                >
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem variant={"destructive"} onClick={() => { logout() }}>
+                                            <LogOut /> Log out
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </SidebarMenuItem>
                     </SidebarMenu>
                 }
