@@ -27,9 +27,9 @@ export default function LoginPage() {
     const [captchaError, setCaptchaError] = useState<boolean>(false);
 
     // TODO: Fix this nonesense
-    const {log} = useLogger("/auth/login");
+    const { log } = useLogger("/auth/login");
     //@ts-expect-error
-    const {login} = useAuth();
+    const { login } = useAuth();
     //@ts-expect-error
     const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
 
@@ -47,11 +47,11 @@ export default function LoginPage() {
             setLoading(true);
 
             // Developement only logs.
-            log("Sent request",<Codeblock>{JSON.stringify(value, null, 2)}</Codeblock>)
+            log("Sent request", <Codeblock>{JSON.stringify(value, null, 2)}</Codeblock>)
 
             await login(value.email, value.password, value.captcha)
 
-            setLoading(false);            
+            setLoading(false);
         }
     })
 
@@ -121,15 +121,15 @@ export default function LoginPage() {
                                     children={(field) => {
                                         const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                                         return (
-                                            <Turnstile 
-                                                id={field.name} 
-                                                onBlur={field.handleBlur} 
-                                                aria-invalid={isInvalid} 
-                                                siteKey={turnstileSiteKey} 
-                                                options={{ size: "flexible" }} 
+                                            <Turnstile
+                                                id={field.name}
+                                                onBlur={field.handleBlur}
+                                                aria-invalid={isInvalid}
+                                                siteKey={turnstileSiteKey}
+                                                options={{ size: "flexible" }}
                                                 onSuccess={(e) => { field.setValue(e) }}
-                                                onError={(e) => {setCaptchaError(true)}} 
-                                                />
+                                                onError={(e) => { setCaptchaError(true) }}
+                                            />
                                         )
                                     }}
                                 />
@@ -139,7 +139,7 @@ export default function LoginPage() {
                         <Button type="submit" disabled={isCaptchaSet == ""}>{isLoading ? <Spinner /> : "Login"}</Button>
                     </form>
                 </CardContent>
-                {signupEnabled && 
+                {signupEnabled &&
                     <CardFooter>
                         <Link href={"/auth/register"} className="underline duration-200 text-primary hover:text-primary/80">Register?</Link>
                     </CardFooter>
