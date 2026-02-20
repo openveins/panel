@@ -2,7 +2,7 @@
 - [x] `fetch` should be switched with `axios`
 
 ## Auth
-- ~~[ ] Login and registers routes should set cookies.~~
+- [ ] ~~Login and registers routes should set cookies.~~
 - [x] Login and register routes now set JWT token in localstorage.
 
 ## Dashboard
