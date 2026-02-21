@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register
     }
 
-    return(
+    return (
         <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
@@ -134,4 +134,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 }
 
-export const useAuth = () => {return useContext(AuthContext)}
+export function useAuth() {
+    const context = useContext(AuthContext);
+    if (!context) throw new Error("useAuth must be used within a AuthProvider");
+    return context;
+}

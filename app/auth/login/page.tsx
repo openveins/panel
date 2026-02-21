@@ -26,11 +26,8 @@ export default function LoginPage() {
     const [isLoading, setLoading] = useState<boolean>(false);
     const [captchaError, setCaptchaError] = useState<boolean>(false);
 
-    // TODO: Fix this nonesense
     const { log } = useLogger("/auth/login");
-    //@ts-expect-error
     const { login } = useAuth();
-    //@ts-expect-error
     const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
 
 

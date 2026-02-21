@@ -11,6 +11,7 @@ import Avatar from "boring-avatars";
 
 import { useAuth } from "../context/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePathname } from "next/navigation";
 
 let data = {
     "groups": [
@@ -23,26 +24,26 @@ let data = {
         {
             "label": "Infra",
             "items": [
-                { "label": "Nodes", "href": "/dashboard", "icon": Diamond, "badge": { "value": "3", "className": "bg-emerald-200" } },
-                { "label": "Servers", "href": "/dashboard", "icon": HardDrive },
-                { "label": "Templates", "href": "/dashboard", "icon": LayoutTemplate }
+                { "label": "Nodes", "href": "/dashboard/nodes", "icon": Diamond, "badge": { "value": "3", "className": "bg-emerald-200" } },
+                { "label": "Servers", "href": "/dashboard/servers", "icon": HardDrive },
+                { "label": "Templates", "href": "/dashboard/templates", "icon": LayoutTemplate }
             ]
         },
         {
             "label": "Management",
             "items": [
-                { "label": "Users", "href": "/dashboard", "icon": Users, "badge": { "value": "24", "className": "bg-foreground/20" } },
-                { "label": "File Manager", "href": "/dashboard", "icon": FolderTree },
-                { "label": "Console", "href": "/dashboard", "icon": SquareChevronRight },
-                { "label": "Schedules", "href": "/dashboard", "icon": Clock3 },
-                { "label": "Backups", "href": "/dashboard", "icon": Archive }
+                { "label": "Users", "href": "/dashboard/users", "icon": Users, "badge": { "value": "24", "className": "bg-foreground/20" } },
+                { "label": "File Manager", "href": "/dashboard/filemanager", "icon": FolderTree },
+                { "label": "Console", "href": "/dashboard/console", "icon": SquareChevronRight },
+                { "label": "Schedules", "href": "/dashboard/schedules", "icon": Clock3 },
+                { "label": "Backups", "href": "/dashboard/backups", "icon": Archive }
             ]
         },
         {
             "label": "System",
             "items": [
-                { "label": "Audit Log", "href": "/dashboard", "icon": Shield, "badge": { "value": "!", "className": "bg-red-300" } },
-                { "label": "Settings", "href": "/dashboard", "icon": Settings }
+                { "label": "Audit Log", "href": "/dashboard/auditlog", "icon": Shield, "badge": { "value": "!", "className": "bg-red-300" } },
+                { "label": "Settings", "href": "/dashboard/settings", "icon": Settings }
             ]
         }
     ],
@@ -55,23 +56,25 @@ let data = {
 
 
 export function DashboardSidebar() {
-    //@ts-expect-error
-    const { user, isLoading, logout, isAuthenticated } = useAuth();
+    const { user, isLoading, logout } = useAuth();
     const isMobile = useIsMobile();
+
+    const pathname = usePathname()
+
     return (
         <Sidebar>
             <SidebarHeader className="text-center font-bold text-xl">
                 Openveins
             </SidebarHeader>
             <SidebarContent>
-                {data.groups.map((group, index) => (
-                    <SidebarGroup key={index}>
+                {data.groups.map((group, idx) => (
+                    <SidebarGroup key={idx}>
                         <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
                         <SidebarGroupContent>
                             <SidebarMenu>
                                 {group.items.map((item, index) => (
                                     <SidebarMenuItem key={index}>
-                                        <SidebarMenuButton asChild>
+                                        <SidebarMenuButton asChild style={{background: pathname == item.href ? "oklch(0.541 0.281 293.009)" : "oklch(0.985 0 0)", color: pathname == item.href ? "white" : "black" }}>
                                             <Link href={item.href}>
                                                 <item.icon />
                                                 {item.label}
@@ -98,7 +101,7 @@ export function DashboardSidebar() {
                 </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
-                {(!isLoading && isAuthenticated) &&
+                {(!isLoading && user) &&
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <DropdownMenu>
