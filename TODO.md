@@ -13,3 +13,8 @@
 - [ ] Code cleanup from unused and commented out code snippets.
 - [ ] Fix responsivenes on mobile devices.
 - [ ] Remove some debug logging.
+
+
+## `/dashboard/setting`
+- [ ] Separate some rendering to multiple components.
+- [ ] General cleanup of the code.
