@@ -12,3 +12,4 @@
 ## General
 - [ ] Code cleanup from unused and commented out code snippets.
 - [ ] Fix responsivenes on mobile devices.
+- [ ] Remove some debug logging.
