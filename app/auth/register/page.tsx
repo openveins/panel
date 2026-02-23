@@ -13,7 +13,6 @@ import { useForm } from "@tanstack/react-form";
 import { Eye, EyeClosed, UserLock } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
 import * as z from "zod"
 
 const passwordSchema =
@@ -51,10 +50,10 @@ export default function RegisterPage() {
     const [captchaError, setCaptchaError] = useState<boolean>(false);
 
     const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
-    const {register} = useAuth();
+    const { register } = useAuth();
 
-    if(!signupEnabled){
-        return(
+    if (!signupEnabled) {
+        return (
             <div className="w-full min-h-screen flex items-center justify-center">
                 <Empty>
                     <EmptyHeader>
@@ -86,12 +85,6 @@ export default function RegisterPage() {
         },
         onSubmit: async ({ value }) => {
             setLoading(true);
-            // fetch("/api/auth/register", {method: "POST", body: JSON.stringify(value), headers: {"Content-Type": "application/json"}
-            // }).then((res) => res.json()).then((data) => {
-            //     setLoading(false);
-            //     toast(data.message)
-            // })
-
             await register(value.username, value.email, value.password, value.captchaToken);
             setLoading(false);
 
@@ -174,7 +167,7 @@ export default function RegisterPage() {
                                                     aria-invalid={isInvalid}
                                                     type={showPassword ? "text" : "password"}
                                                 />
-                                                <Button type="button" onClick={() => {setShowPassword(!showPassword)}} variant={"ghost"}>{!showPassword ? <Eye/> : <EyeClosed/>}</Button>
+                                                <Button type="button" onClick={() => { setShowPassword(!showPassword) }} variant={"ghost"}>{!showPassword ? <Eye /> : <EyeClosed />}</Button>
                                             </div>
                                             {isInvalid && (
                                                 <FieldError errors={field.state.meta.errors} />
@@ -211,22 +204,22 @@ export default function RegisterPage() {
                                     children={(field) => {
                                         const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                                         return (
-                                            <Turnstile 
-                                                id={field.name} 
-                                                onBlur={field.handleBlur} 
-                                                aria-invalid={isInvalid} 
-                                                siteKey={turnstileSiteKey} 
-                                                options={{ size: "flexible" }} 
+                                            <Turnstile
+                                                id={field.name}
+                                                onBlur={field.handleBlur}
+                                                aria-invalid={isInvalid}
+                                                siteKey={turnstileSiteKey}
+                                                options={{ size: "flexible" }}
                                                 onSuccess={(e) => { field.setValue(e) }}
-                                                onError={() => {setCaptchaError(true)}} 
-                                                />
+                                                onError={() => { setCaptchaError(true) }}
+                                            />
                                         )
                                     }}
                                 />
                             }
                         </FieldGroup>
                         {captchaError && <p className="text-xs text-red-700">It seems like the captcha failed or had some other problem. Please refresh the page.</p>}
-                        <Button className="w-full" type="submit">{isLoading? <Spinner/> : "Register"}</Button>
+                        <Button className="w-full" type="submit">{isLoading ? <Spinner /> : "Register"}</Button>
                     </form>
                 </CardContent>
                 <CardFooter>
