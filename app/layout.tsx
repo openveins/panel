@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { LoggerProvider } from "@/components/context/LoggerContext";
-import { AuthProvider } from "@/components/context/AuthContext";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { ContextManager } from "@/components/context/ContextManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,13 +31,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <main>
-          <TooltipProvider>
-            <LoggerProvider>
-              <AuthProvider>
-                {children}
-              </AuthProvider>
-            </LoggerProvider>
-          </TooltipProvider>
+          <ContextManager>
+            {children}
+          </ContextManager>
         </main>
         <Toaster expand visibleToasts={10}/>
       </body>
