@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { useLogger } from "./LoggerContext";
 import axios from "axios";
 import Codeblock from "../ui/codeblock";
-import { StringFormatParams } from "zod/v4/core";
+import { useAuth } from "./AuthContext";
 
 interface DashboardContextValue {
     settings: Record<string, string> | null;
@@ -12,29 +12,24 @@ interface DashboardContextValue {
     patchSettings: (patches: Record<string, string | boolean>) => Promise<void>;
 }
 
-
-
 const DashboardContext = createContext<DashboardContextValue | null>(null);
 
 
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     const { log } = useLogger("DashboardProvider");
+    const { token } = useAuth();
 
     const [settings, setSettings] = useState<Record<string, string> | null>(null);
     const [patchResponse, setPatchResponse] = useState<Record<string, object | string> | null>(null);
     const [isLoading, setLoading] = useState<boolean>(true);
 
 
-
     const getSettings = useCallback(async () => {
         try {
-            log("Getting settings");
-            const response = await axios.get("/api/config")
-            log("Got response: ", <Codeblock>{JSON.stringify(response.data, null, 2)}</Codeblock>);
-            let data = Object.fromEntries(response.data.configList.map((item: {Id: string, configName: string, configValue: string}) => [item.configName, item.configValue]))
+            const response = await axios.get("/api/config", {headers: {"Authorization": `Bearer ${token}`}})
+            let data = Object.fromEntries(response.data.configList.map((item: { Id: string, configName: string, configValue: string }) => [item.configName, item.configValue]))
             setSettings(data);
-            log("Parsed: ", <Codeblock>{JSON.stringify(data, null, 2)}</Codeblock>);
             setLoading(false)
         } catch (e) {
             if (axios.isAxiosError(e)) {
@@ -46,24 +41,25 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     const patchSettings = useCallback(async (patches: Record<string, string | boolean>) => {
         setLoading(true);
-        try{
-            const response = await axios.patch("/api/config", {updates: patches})
+        setPatchResponse(null);
+        try {
+            const response = await axios.patch("/api/config", { updates: patches }, {headers: {"Authorization": `Bearer ${token}`}})
             setPatchResponse(response.data);
             getSettings();
-        } catch(e) {
+        } catch (e) {
             if (axios.isAxiosError(e)) {
                 log(e.response?.data)
             }
             console.warn(e);
-            setLoading(false);
         }
+        setLoading(false);
     }, [])
 
     useEffect(() => {
-        if (settings == null)
+        if (settings == null || token != null)
             getSettings();
 
-    }, [getSettings])
+    }, [getSettings, isLoading])
 
     const value: DashboardContextValue = {
         settings,
@@ -71,8 +67,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         patchSettings,
         patchResponse
     }
-
-
 
     return (
         <DashboardContext.Provider value={value}>
