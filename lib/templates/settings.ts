@@ -1,3 +1,5 @@
+import { Archive, Clock3, Diamond, FolderTree, HardDrive, LayoutDashboard, LayoutTemplate, Settings, Shield, SquareChevronRight, Users } from "lucide-react";
+
 interface ConfigInterface {
     sectionTitle: string;
     sectionDescription: string;
@@ -75,5 +77,47 @@ const CONFIG_SECTION: ConfigInterface[] = [
     }
 ]
 
-export { CONFIG_SECTION }
+
+const SIDEBAR_DATA = {
+    "groups": [
+        {
+            "label": "Overview",
+            "items": [
+                { "label": "Dashboard", "href": "/dashboard", "icon": LayoutDashboard }
+            ]
+        },
+        {
+            "label": "Infra",
+            "items": [
+                { "label": "Nodes", "href": "/dashboard/nodes", "icon": Diamond, "badge": { "value": "3", "className": "bg-emerald-200" } },
+                { "label": "Servers", "href": "/dashboard/servers", "icon": HardDrive },
+                { "label": "Templates", "href": "/dashboard/templates", "icon": LayoutTemplate }
+            ]
+        },
+        {
+            "label": "Management",
+            "items": [
+                { "label": "Users", "href": "/dashboard/users", "icon": Users, "badge": { "value": "24", "className": "bg-foreground/20" } },
+                { "label": "File Manager", "href": "/dashboard/filemanager", "icon": FolderTree },
+                { "label": "Console", "href": "/dashboard/console", "icon": SquareChevronRight },
+                { "label": "Schedules", "href": "/dashboard/schedules", "icon": Clock3 },
+                { "label": "Backups", "href": "/dashboard/backups", "icon": Archive }
+            ]
+        },
+        {
+            "label": "System",
+            "items": [
+                { "label": "Audit Log", "href": "/dashboard/auditlog", "icon": Shield, "badge": { "value": "!", "className": "bg-red-300" } },
+                { "label": "Settings", "href": "/dashboard/settings", "icon": Settings }
+            ]
+        }
+    ],
+    "nodesHealth": [
+        { "name": "eu-east-1", "value": 40 },
+        { "name": "eu-east-2", "value": 80 },
+        { "name": "na-west-1", "value": 100 }
+    ]
+}
+
+export { CONFIG_SECTION, SIDEBAR_DATA }
 export type { ConfigFieldInterface, ConfigInterface }
