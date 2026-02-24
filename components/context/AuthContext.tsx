@@ -6,6 +6,8 @@ import { useLogger } from "./LoggerContext";
 import { isTokenExpired, parseJWT } from "@/lib/jwt";
 import { useRouter } from "next/navigation";
 import Codeblock from "../ui/codeblock";
+import {toast} from "sonner";
+import { Spinner } from "../ui/spinner";
 
 interface User {
     username: string;
@@ -50,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         log("User logged in:", <Codeblock>{JSON.stringify(payload, null, 2)}</Codeblock>)
-
+        setLoading(false);
     }, []);
 
     const clearToken = useCallback(() => {
@@ -65,10 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             saveToken(stored);
         } else {
             clearToken();
+            router.push("/auth/login")
+            toast.error("You are unauthenticated!");
+            setLoading(false);
         }
-
-        setLoading(false);
-
     }, [saveToken, clearToken])
 
     const login = useCallback(async (email: string, password: string, captcha: string | null) => {
@@ -124,6 +126,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         register
+    }
+
+    if(isLoading) {
+        return(
+            <div className="min-h-screen w-full flex items-center justify-center">
+                <Spinner className="size-8"/>
+            </div>
+        )
     }
 
     return (
