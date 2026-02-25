@@ -9,7 +9,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Turnstile } from "@marsidev/react-turnstile";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { Eye, EyeClosed, UserLock } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -91,6 +91,8 @@ export default function RegisterPage() {
         }
     })
 
+    const isCaptchaSet = useStore(form.store, (state) => state.values.captchaToken);
+    
     return (
         <div className="min-h-screen w-full flex items-center justify-center">
             <Card className="w-96">
@@ -219,7 +221,7 @@ export default function RegisterPage() {
                             }
                         </FieldGroup>
                         {captchaError && <p className="text-xs text-red-700">It seems like the captcha failed or had some other problem. Please refresh the page.</p>}
-                        <Button className="w-full" type="submit">{isLoading ? <Spinner /> : "Register"}</Button>
+                        <Button className="w-full" type="submit" disabled={turnstileEnabled && isCaptchaSet == ""}>{isLoading ? <Spinner /> : "Register"}</Button>
                     </form>
                 </CardContent>
                 <CardFooter>

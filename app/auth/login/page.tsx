@@ -133,7 +133,7 @@ export default function LoginPage() {
                             }
                         </FieldGroup>
                         {captchaError && <p className="text-xs text-red-700">It seems like the captcha failed or had some other problem. Please refresh the page.</p>}
-                        <Button type="submit" disabled={isCaptchaSet == ""}>{isLoading ? <Spinner /> : "Login"}</Button>
+                        <Button type="submit" disabled={isCaptchaSet == "" && turnstileEnabled}>{isLoading ? <Spinner /> : "Login"}</Button>
                     </form>
                 </CardContent>
                 {signupEnabled &&
