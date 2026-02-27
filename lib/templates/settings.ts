@@ -89,7 +89,7 @@ const SIDEBAR_DATA = {
         {
             "label": "Infra",
             "items": [
-                { "label": "Nodes", "href": "/dashboard/nodes", "icon": Diamond, "badge": { "value": "3", "className": "bg-emerald-200" } },
+                { "label": "Nodes", "href": "/dashboard/nodes", "icon": Diamond, "badge": { "value": "3", "className": "bg-emerald-200 dark:bg-emerald-400 dark:text-black" } },
                 { "label": "Servers", "href": "/dashboard/servers", "icon": HardDrive },
                 { "label": "Templates", "href": "/dashboard/templates", "icon": LayoutTemplate }
             ]
@@ -97,7 +97,7 @@ const SIDEBAR_DATA = {
         {
             "label": "Management",
             "items": [
-                { "label": "Users", "href": "/dashboard/users", "icon": Users, "badge": { "value": "24", "className": "bg-foreground/20" } },
+                { "label": "Users", "href": "/dashboard/users", "icon": Users, "badge": { "value": "24", "className": "bg-foreground/20 dark:bg-foreground/80 dark:text-white" } },
                 { "label": "File Manager", "href": "/dashboard/filemanager", "icon": FolderTree },
                 { "label": "Console", "href": "/dashboard/console", "icon": SquareChevronRight },
                 { "label": "Schedules", "href": "/dashboard/schedules", "icon": Clock3 },
@@ -107,7 +107,7 @@ const SIDEBAR_DATA = {
         {
             "label": "System",
             "items": [
-                { "label": "Audit Log", "href": "/dashboard/auditlog", "icon": Shield, "badge": { "value": "!", "className": "bg-red-300" } },
+                { "label": "Audit Log", "href": "/dashboard/auditlog", "icon": Shield, "badge": { "value": "!", "className": "bg-red-300 dark:bg-red-400" } },
                 { "label": "Settings", "href": "/dashboard/settings", "icon": Settings }
             ]
         }

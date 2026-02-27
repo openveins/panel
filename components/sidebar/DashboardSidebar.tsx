@@ -39,7 +39,7 @@ export function DashboardSidebar() {
                             <SidebarMenu>
                                 {group.items.map((item, index) => (
                                     <SidebarMenuItem key={index}>
-                                        <SidebarMenuButton asChild style={{ background: pathname == item.href ? "oklch(0.541 0.281 293.009)" : "oklch(0.985 0 0)", color: pathname == item.href ? "white" : "black" }} tooltip={item.label}>
+                                        <SidebarMenuButton asChild data-selected={pathname == item.href} className={"data-[selected=true]:text-white data-[selected=true]:bg-primary"} tooltip={item.label}>
                                             <Link href={item.href}>
                                                 <item.icon />
                                                 {item.label}

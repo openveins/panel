@@ -12,8 +12,9 @@
 ## General
 - [ ] Code cleanup from unused and commented out code snippets.
 - [ ] Fix responsivenes on mobile devices.
-- [ ] Remove some debug logging.
-- [ ] Add switchable color themes (dark/light)
+- [x] Remove some debug logging.
+- [ ] Add switchable color themes (dark/light)]
+    - Added themes but they auto switch based on the browser.
 
 
 ## `/dashboard/setting`
