@@ -2,6 +2,7 @@ interface JWTPayload {
     sub: string;
     username: string;
     email: string;
+    otpEnabled: boolean;
     role: string;
     exp: number;
     iat: number;

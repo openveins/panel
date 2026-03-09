@@ -27,7 +27,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     const getSettings = useCallback(async () => {
         try {
-            const response = await axios.get("/api/config", {headers: {"Authorization": `Bearer ${token}`}})
+            const response = await axios.get("/api/config", { headers: { "Authorization": `Bearer ${token}` } })
             let data = Object.fromEntries(response.data.configList.map((item: { Id: string, configName: string, configValue: string }) => [item.configName, item.configValue]))
             setSettings(data);
             setLoading(false)
@@ -43,7 +43,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setLoading(true);
         setPatchResponse(null);
         try {
-            const response = await axios.patch("/api/config", { updates: patches }, {headers: {"Authorization": `Bearer ${token}`}})
+            const response = await axios.patch("/api/config", { updates: patches }, { headers: { "Authorization": `Bearer ${token}` } })
             setPatchResponse(response.data);
             getSettings();
         } catch (e) {
@@ -56,10 +56,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }, [])
 
     useEffect(() => {
-        if (settings == null || token != null)
+        if (token)
             getSettings();
 
-    }, [getSettings, isLoading])
+    }, [getSettings])
 
     const value: DashboardContextValue = {
         settings,

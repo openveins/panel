@@ -26,9 +26,8 @@ export default function LoginPage() {
     const [isLoading, setLoading] = useState<boolean>(false);
     const [captchaError, setCaptchaError] = useState<boolean>(false);
 
-    const { log } = useLogger("/auth/login");
     const { login } = useAuth();
-    const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
+    const { features, error } = useFeatures();
 
 
     const form = useForm({
@@ -43,9 +42,6 @@ export default function LoginPage() {
         onSubmit: async ({ value }) => {
             setLoading(true);
 
-            // Developement only logs.
-            log("Sent request", <Codeblock>{JSON.stringify(value, null, 2)}</Codeblock>)
-
             await login(value.email, value.password, value.captcha)
 
             setLoading(false);
@@ -54,6 +50,13 @@ export default function LoginPage() {
 
     const isCaptchaSet = useStore(form.store, (state) => state.values.captcha);
 
+    if (error || features == null) {
+        return (
+            <div>
+                An error occured while fetching features.
+            </div>
+        )
+    }
     return (
         <div className="min-h-screen w-full flex items-center justify-center">
             <Card className="w-96">
@@ -113,7 +116,7 @@ export default function LoginPage() {
                                     )
                                 }}
                             />
-                            {turnstileEnabled &&
+                            {(features.turnstileEnabled == true) &&
                                 <form.Field name="captcha"
                                     children={(field) => {
                                         const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
@@ -122,7 +125,7 @@ export default function LoginPage() {
                                                 id={field.name}
                                                 onBlur={field.handleBlur}
                                                 aria-invalid={isInvalid}
-                                                siteKey={turnstileSiteKey}
+                                                siteKey={features.turnstileSiteKey}
                                                 options={{ size: "flexible" }}
                                                 onSuccess={(e) => { field.setValue(e) }}
                                                 onError={(e) => { setCaptchaError(true) }}
@@ -133,10 +136,10 @@ export default function LoginPage() {
                             }
                         </FieldGroup>
                         {captchaError && <p className="text-xs text-red-700">It seems like the captcha failed or had some other problem. Please refresh the page.</p>}
-                        <Button type="submit" disabled={isCaptchaSet == "" && turnstileEnabled}>{isLoading ? <Spinner /> : "Login"}</Button>
+                        <Button type="submit" disabled={isCaptchaSet == "" && features.turnstileEnabled}>{isLoading ? <Spinner /> : "Login"}</Button>
                     </form>
                 </CardContent>
-                {signupEnabled &&
+                {features.signupEnabled &&
                     <CardFooter>
                         <Link href={"/auth/register"} className="underline duration-200 text-primary hover:text-primary/80">Register?</Link>
                     </CardFooter>
@@ -144,4 +147,5 @@ export default function LoginPage() {
             </Card>
         </div>
     )
+
 }
