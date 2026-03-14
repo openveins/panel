@@ -28,7 +28,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     const getSettings = useCallback(async () => {
         try {
             const response = await axios.get("/api/config", { headers: { "Authorization": `Bearer ${token}` } })
-            let data = Object.fromEntries(response.data.configList.map((item: { Id: string, configName: string, configValue: string }) => [item.configName, item.configValue]))
+            const data = Object.fromEntries(response.data.configList.map((item: { Id: string, configName: string, configValue: string }) => [item.configName, item.configValue]))
             setSettings(data);
             setLoading(false)
         } catch (e) {

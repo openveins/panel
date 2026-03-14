@@ -5,8 +5,8 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { TriangleAlert } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import axios from "axios";
+import { Spinner } from "../ui/spinner";
 
 interface HealthCheckInterface {
     healthy: boolean,
@@ -25,8 +25,6 @@ export function HealthCheckProvider({ children }: { children: React.ReactNode })
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [lastCheck, setLastCheck] = useState<number>(0);
-
-    const router = useRouter();
 
     const ping = useCallback(async () => {
         setIsLoading(true);
@@ -55,7 +53,15 @@ export function HealthCheckProvider({ children }: { children: React.ReactNode })
         ping,
     }
 
-    if (!healthy && !isLoading) {
+    if(isLoading){
+        return (
+            <div className="min-h-screen w-full flex items-center justify-center">
+                <Spinner/>
+            </div>
+        )
+    }
+
+    else if (!healthy) {
         return (
             <div className="min-h-screen w-full flex items-center justify-center">
                 <Empty>
