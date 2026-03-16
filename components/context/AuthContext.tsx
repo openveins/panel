@@ -2,136 +2,193 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import axios, { AxiosError } from "axios"
-import { useLogger } from "./LoggerContext";
-import { isTokenExpired, parseJWT } from "@/lib/jwt";
-import { useRouter } from "next/navigation";
-import Codeblock from "../ui/codeblock";
-import {toast} from "sonner";
+import { usePathname, useRouter } from "next/navigation";
 import { Spinner } from "../ui/spinner";
 
 interface User {
     username: string;
     email: string;
-    role: string;
     id: string;
+    settings: {}
 }
 
 interface AuthContextValue {
     user: User | null;
-    token: string | null;
     isLoading: boolean;
     isAuthenticated: boolean;
     login: (email: string, password: string, captcha: string | null) => Promise<void>;
     register: (username: string, email: string, password: string, captcha: string | null) => Promise<void>;
     logout: () => void;
-    //me: () => Promise<void>;
+    setupTOTP: (enabled: boolean) => Promise<{ state: string, message: string, qr: string | undefined }>;
+    verifyTOTP: (code: string) => Promise<{
+        status: undefined; state: string, message: string
+    }>;
+    loginTOTP: (code: string) => Promise<{ state: string, message: string }>;
+    me: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const TOKEN_KEY = "auth_token"
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
     const [isLoading, setLoading] = useState<boolean>(true);
 
     const router = useRouter();
+    const pathname = usePathname();
 
-    const { log } = useLogger("AuthContext");
-
-
-    const saveToken = useCallback((newToken: string) => {
-        localStorage.setItem(TOKEN_KEY, newToken);
-        setToken(newToken);
-
-        const payload = parseJWT(newToken);
-        if (payload) {
-            setUser({ id: payload.sub, username: payload.username, email: payload.email, role: payload.role })
-        }
-
-        log("User logged in:", <Codeblock>{JSON.stringify(payload, null, 2)}</Codeblock>)
-        setLoading(false);
-    }, []);
-
-    const clearToken = useCallback(() => {
-        localStorage.removeItem(TOKEN_KEY)
-        setUser(null);
-        setToken(null);
-    }, []);
-
-    useEffect(() => {
-        const stored = localStorage.getItem(TOKEN_KEY)
-        if (stored && !isTokenExpired(stored)) {
-            saveToken(stored);
-        } else {
-            clearToken();
-            router.push("/auth/login")
-            toast.error("You are unauthenticated!");
-            setLoading(false);
-        }
-    }, [saveToken, clearToken])
-
-    const login = useCallback(async (email: string, password: string, captcha: string | null) => {
+    const me = useCallback(async () => {
+        if (pathname.includes("/auth")) return setLoading(false);
         try {
-            log("Login request...");
-            const response = await axios.post("/api/auth/login", { headers: { "Content-Type": "application/json" }, email, password, captcha })
-            const { token } = response.data;
-            saveToken(token);
-            log("Success!", <p>Token - {token}</p>)
-            router.push("/dashboard")
+            const response = await axios.get("/api/auth/me", { withCredentials: true });
+            const { id, username, email, settings } = response.data;
+            setUser({ id, username, email, settings })
+            if (!pathname.includes("dashboard"))
+                router.push("/dashboard")
         } catch (e) {
+            router.push('/auth/login')
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
-                log("Error occured", <Codeblock>{JSON.stringify(error.response?.data, null, 2)}</Codeblock>)
+                console.error(error);
                 return;
             } else {
                 return console.error(e);
             }
+        } finally {
+            setLoading(false);
         }
-    }, [saveToken])
+    }, [setUser, setLoading])
+
+    useEffect(() => {
+        me()
+    }, [me])
+
+    const logout = useCallback(async () => {
+        setLoading(true)
+        try {
+            await axios.get("/api/auth/logout");
+            router.push("/auth/login")
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const error = e as AxiosError;
+                console.error(error);
+                return;
+            } else {
+                return console.error(e);
+            }
+        } finally {
+            setUser(null);
+            setLoading(false)
+        }
+    }, [setLoading])
+
+    const login = useCallback(async (email: string, password: string, captcha: string | null) => {
+        setLoading(true);
+        try {
+            const response = await axios.post("/api/auth/login", { email, password, captcha })
+            const { totpRequired } = response.data;
+            if (totpRequired) {
+                return router.push("/auth/login/2fa")
+            }
+            me();
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const error = e as AxiosError;
+                console.error(error);
+                return;
+            } else {
+                return console.error(e);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [setLoading, me])
 
     const register = useCallback(async (username: string, email: string, password: string, captcha: string | null) => {
         try {
-            log("Register request...");
-            const response = await axios.post("/api/auth/register", { headers: { "Content-Type": "application/json" }, username, email, password, captcha })
-            const { token } = response.data;
-            saveToken(token);
-            log("Success!", <p>Token - {token}</p>)
-            router.push("/dashboard")
+            await axios.post("/api/auth/register", { username, email, password, captcha })
+            me();
         } catch (e) {
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
-                log("Error occured", <Codeblock>{JSON.stringify(error.response?.data, null, 2)}</Codeblock>)
+                console.error(error);
                 return;
             } else {
                 return console.error(e);
             }
         }
-    }, [saveToken])
+    }, [me])
 
-    const logout = useCallback(() => {
-        setLoading(true);
-        clearToken();
-        router.push("/auth/login")
-        setLoading(false);
-    }, [clearToken]);
+
+    const setupTOTP = useCallback(async (enable: boolean) => {
+        try {
+            const response = await axios.patch("/api/profile/2fa", { enable }, { withCredentials: true })
+            me();
+            return response.data;
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const error = e as AxiosError;
+                return { state: "error", message: (error.response?.data as { message: string })?.message ?? "An unexpected error occurred." };
+            } else {
+                console.error(e);
+                return { state: "error", message: "An internal server error occured." }
+            }
+        }
+    }, [])
+
+    const verifyTOTP = useCallback(async (code: string) => {
+        try {
+            const response = await axios.post("/api/profile/2fa/verify", { code }, { withCredentials: true })
+            me();
+            return response.data;
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const error = e as AxiosError;
+                return { state: "error", message: (error.response?.data as { message: string })?.message ?? "An unexpected error occured." }
+            } else {
+                console.error(e);
+                return { state: "error", message: "Unknown error" }
+            }
+        }
+    }, [])
+
+    const loginTOTP = useCallback(async (code: string) => {
+        try {
+            const response = await axios.post("/api/auth/login/2fa", { code }, { withCredentials: true })
+            const { message } = response.data;
+            router.replace("/dashboard")
+            me();
+            return { state: "success", message }
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const error = e as AxiosError;
+                return { state: "error", message: (error.response?.data as { message: string })?.message }
+            } else {
+                console.error(e);
+                return { state: "error", message: "Internal server error" }
+            }
+        }
+    }, [])
+
 
     const value = {
         user,
-        token,
         isLoading,
         isAuthenticated: !!user,
         login,
         logout,
-        register
+        register,
+        setupTOTP,
+        verifyTOTP,
+        loginTOTP,
+        me
     }
 
-    if(isLoading) {
-        return(
+    if (isLoading) {
+        return (
             <div className="min-h-screen w-full flex items-center justify-center">
-                <Spinner className="size-8"/>
+                <Spinner className="size-8" />
             </div>
         )
     }

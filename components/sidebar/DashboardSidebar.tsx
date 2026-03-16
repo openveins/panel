@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import { ChevronsUpDown, LogOut, UserRoundPen } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
 import { Card, CardContent } from "../ui/card";
@@ -19,7 +19,7 @@ export function DashboardSidebar() {
     const { user, isLoading, logout } = useAuth();
     const isMobile = useIsMobile();
 
-    const {open} = useSidebar();
+    const { open } = useSidebar();
 
     const pathname = usePathname()
 
@@ -86,6 +86,11 @@ export function DashboardSidebar() {
                                     sideOffset={4}
                                 >
                                     <DropdownMenuGroup>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={"/dashboard/profile"}>
+                                                <UserRoundPen /> Profile settings
+                                            </Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem variant={"destructive"} onClick={() => { logout() }}>
                                             <LogOut /> Log out
                                         </DropdownMenuItem>

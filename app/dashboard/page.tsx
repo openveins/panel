@@ -1,13 +1,11 @@
 "use client"
 
 import { useAuth } from "@/components/context/AuthContext";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function DashboardPage(){
-
-    const {token} = useAuth();
 
     return(
         <div className="overflow-auto">
@@ -23,7 +21,6 @@ export default function DashboardPage(){
                 </Breadcrumb>
             </header>
             <main className="m-2">
-                {token ? token : "not logged in"}
             </main>
         </div>
     )

@@ -1,6 +1,6 @@
 {
-  "name": "openveinsssss",
-  "version": "0.1.0",
+  "name": "openveins",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -18,6 +18,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookies-next": "^6.1.1",
+    "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.564.0",
     "next": "16.1.6",
@@ -25,6 +26,7 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-qr-code": "^2.0.18",
     "shadcn": "^3.8.5",
     "tailwind-animations": "^1.0.1",
     "tailwind-merge": "^3.4.1",

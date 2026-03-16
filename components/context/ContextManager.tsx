@@ -4,8 +4,8 @@ import { HealthCheckProvider } from "./HealthCheckContext";
 import { LoggerProvider } from "./LoggerContext";
 import { ThemeProvider } from "./ThemeContext";
 
-export function ContextManager({children}: {children: React.ReactNode}) {
-    return(
+export function ContextManager({ children }: { children: React.ReactNode }) {
+    return (
         <ThemeProvider
             attribute={"class"}
             defaultTheme="system"

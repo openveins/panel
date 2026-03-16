@@ -37,7 +37,7 @@ const schema: any = z.object({
     email: z.email("Email is required"),
     password: passwordSchema,
     confirmPassword: z.string(),
-    captchaToken: z.string()
+    captcha: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
     error: "The passwords don't match!",
     path: ["confirmPassword"]
@@ -49,10 +49,10 @@ export default function RegisterPage() {
     const [isLoading, setLoading] = useState<boolean>(false);
     const [captchaError, setCaptchaError] = useState<boolean>(false);
 
-    const { turnstileEnabled, turnstileSiteKey, signupEnabled } = useFeatures();
+    const { features, error } = useFeatures();
     const { register } = useAuth();
 
-    if (!signupEnabled) {
+    if (!features?.signupEnabled) {
         return (
             <div className="w-full min-h-screen flex items-center justify-center">
                 <Empty>
@@ -78,20 +78,28 @@ export default function RegisterPage() {
             email: "",
             password: "",
             confirmPassword: "",
-            captchaToken: ""
+            captcha: ""
         },
         validators: {
             onSubmit: schema,
         },
         onSubmit: async ({ value }) => {
             setLoading(true);
-            await register(value.username, value.email, value.password, value.captchaToken);
+            await register(value.username, value.email, value.password, value.captcha);
             setLoading(false);
 
         }
     })
 
-    const isCaptchaSet = useStore(form.store, (state) => state.values.captchaToken);
+    const isCaptchaSet = useStore(form.store, (state) => state.values.captcha);
+
+    if (error || features == null) {
+        return (
+            <div>
+                An error occured while fetching features.
+            </div>
+        )
+    }
     
     return (
         <div className="min-h-screen w-full flex items-center justify-center">
@@ -201,8 +209,8 @@ export default function RegisterPage() {
                                     )
                                 }}
                             />
-                            {turnstileEnabled &&
-                                <form.Field name="captchaToken"
+                            {features.turnstileEnabled &&
+                                <form.Field name="captcha"
                                     children={(field) => {
                                         const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                                         return (
@@ -210,7 +218,7 @@ export default function RegisterPage() {
                                                 id={field.name}
                                                 onBlur={field.handleBlur}
                                                 aria-invalid={isInvalid}
-                                                siteKey={turnstileSiteKey}
+                                                siteKey={features.turnstileSiteKey}
                                                 options={{ size: "flexible" }}
                                                 onSuccess={(e) => { field.setValue(e) }}
                                                 onError={() => { setCaptchaError(true) }}
@@ -221,7 +229,7 @@ export default function RegisterPage() {
                             }
                         </FieldGroup>
                         {captchaError && <p className="text-xs text-red-700">It seems like the captcha failed or had some other problem. Please refresh the page.</p>}
-                        <Button className="w-full" type="submit" disabled={turnstileEnabled && isCaptchaSet == ""}>{isLoading ? <Spinner /> : "Register"}</Button>
+                        <Button className="w-full" type="submit" disabled={features.turnstileEnabled && isCaptchaSet == ""}>{isLoading ? <Spinner /> : "Register"}</Button>
                     </form>
                 </CardContent>
                 <CardFooter>
