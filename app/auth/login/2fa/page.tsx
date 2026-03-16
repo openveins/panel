@@ -21,7 +21,7 @@ export default function TOTPVerificationPage() {
     const handleVerify = async (code: string) => {
         setIsLoading(true);
         const response = await loginTOTP(code);
-        if(!response.success){
+        if(response.state != "success"){
             setError(response.message);
             toast.error(response.message);
             setOtpCode("");

@@ -2,175 +2,178 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import axios, { AxiosError } from "axios"
-import { isTokenExpired, parseJWT } from "@/lib/jwt";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { usePathname, useRouter } from "next/navigation";
 import { Spinner } from "../ui/spinner";
 
 interface User {
     username: string;
     email: string;
-    role: string;
-    otpEnabled: boolean;
     id: string;
+    settings: {}
 }
 
 interface AuthContextValue {
     user: User | null;
-    token: string | null;
     isLoading: boolean;
     isAuthenticated: boolean;
     login: (email: string, password: string, captcha: string | null) => Promise<void>;
     register: (username: string, email: string, password: string, captcha: string | null) => Promise<void>;
     logout: () => void;
-    setupTOTP: (enabled: boolean) => Promise<{ status: "verify" | "error" | "success" | "no_change" | "enabled", success: boolean, message: string, qrURI: string | null }>;
-    verifyTOTP: (code: string) => Promise<{ status: "verify" | "error" | "success" | "no_change" | "enabled", success: boolean, message: string, qrURI: string | null }>;
-    otpToken: string | null;
-    loginTOTP: (code: string) => Promise<{success: boolean, message: string}>;
-    //me: () => Promise<void>;
+    setupTOTP: (enabled: boolean) => Promise<{ state: string, message: string, qr: string | undefined }>;
+    verifyTOTP: (code: string) => Promise<{
+        status: undefined; state: string, message: string
+    }>;
+    loginTOTP: (code: string) => Promise<{ state: string, message: string }>;
+    me: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const TOKEN_KEY = "auth_token"
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
     const [isLoading, setLoading] = useState<boolean>(true);
 
-    const [otpToken, setOtpToken] = useState<string | null>(null);
-
     const router = useRouter();
+    const pathname = usePathname();
 
-    const saveToken = useCallback((newToken: string) => {
-        localStorage.setItem(TOKEN_KEY, newToken);
-        setToken(newToken);
-
-        const payload = parseJWT(newToken);
-        if (payload) {
-            setUser({ id: payload.sub, username: payload.username, email: payload.email, role: payload.role, otpEnabled: payload.otpEnabled })
-        }
-
-        setLoading(false);
-    }, []);
-
-    const clearToken = useCallback(() => {
-        localStorage.removeItem(TOKEN_KEY)
-        setUser(null);
-        setToken(null);
-    }, []);
-
-    useEffect(() => {
-        const stored = localStorage.getItem(TOKEN_KEY)
-        if (stored && !isTokenExpired(stored)) {
-            saveToken(stored);
-        } else {
-            clearToken();
-            router.push("/auth/login")
-            toast.error("You are unauthenticated!");
-            setLoading(false);
-        }
-    }, [])
-
-    const login = useCallback(async (email: string, password: string, captcha: string | null) => {
+    const me = useCallback(async () => {
+        if (pathname.includes("/auth")) return setLoading(false);
         try {
-            const response = await axios.post("/api/auth/login", { email, password, captcha }, { headers: { "Content-Type": "application/json" } })
-            const { token, otpRequired } = response.data;
-            if (otpRequired) {
-                setOtpToken(token);
-                return router.push("/auth/login/2fa")
-            }
-            saveToken(token);
-            router.push("/dashboard")
+            const response = await axios.get("/api/auth/me", { withCredentials: true });
+            const { id, username, email, settings } = response.data;
+            setUser({ id, username, email, settings })
+            if (!pathname.includes("dashboard"))
+                router.push("/dashboard")
         } catch (e) {
+            router.push('/auth/login')
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
+                console.error(error);
                 return;
             } else {
                 return console.error(e);
             }
+        } finally {
+            setLoading(false);
         }
-    }, [saveToken])
+    }, [setUser, setLoading])
+
+    useEffect(() => {
+        me()
+    }, [me])
+
+    const logout = useCallback(async () => {
+        setLoading(true)
+        try {
+            await axios.get("/api/auth/logout");
+            router.push("/auth/login")
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const error = e as AxiosError;
+                console.error(error);
+                return;
+            } else {
+                return console.error(e);
+            }
+        } finally {
+            setUser(null);
+            setLoading(false)
+        }
+    }, [setLoading])
+
+    const login = useCallback(async (email: string, password: string, captcha: string | null) => {
+        setLoading(true);
+        try {
+            const response = await axios.post("/api/auth/login", { email, password, captcha })
+            const { totpRequired } = response.data;
+            if (totpRequired) {
+                return router.push("/auth/login/2fa")
+            }
+            me();
+        } catch (e) {
+            if (axios.isAxiosError(e)) {
+                const error = e as AxiosError;
+                console.error(error);
+                return;
+            } else {
+                return console.error(e);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [setLoading, me])
 
     const register = useCallback(async (username: string, email: string, password: string, captcha: string | null) => {
         try {
-            const response = await axios.post("/api/auth/register", { username, email, password, captcha }, { headers: { "Content-Type": "application/json" } })
-            const { token } = response.data;
-            saveToken(token);
-            router.push("/dashboard")
+            await axios.post("/api/auth/register", { username, email, password, captcha })
+            me();
         } catch (e) {
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
+                console.error(error);
                 return;
             } else {
                 return console.error(e);
             }
         }
-    }, [saveToken])
+    }, [me])
+
 
     const setupTOTP = useCallback(async (enable: boolean) => {
         try {
-            const response = await axios.patch("/api/profile/2fa", { enable }, { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` } })
-            const { status, message, success, data } = response.data;
-            return { status, message, success, data };
+            const response = await axios.patch("/api/profile/2fa", { enable }, { withCredentials: true })
+            me();
+            return response.data;
         } catch (e) {
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
-                return { status: "error", success: false, message: error.response?.data, qrURI: "" }
+                return { state: "error", message: (error.response?.data as { message: string })?.message ?? "An unexpected error occurred." };
             } else {
                 console.error(e);
-                return { status: "error", success: false, message: "Unknown error", qrURI: "" }
+                return { state: "error", message: "An internal server error occured." }
             }
         }
-    }, [token])
+    }, [])
 
     const verifyTOTP = useCallback(async (code: string) => {
         try {
-            const response = await axios.post("/api/profile/2fa/verify", { code }, { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` } })
-            const { status, message, success, qrURI } = response.data;
-            return { status, message, success, qrURI };
+            const response = await axios.post("/api/profile/2fa/verify", { code }, { withCredentials: true })
+            me();
+            return response.data;
         } catch (e) {
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
-                return { status: "error", success: false, message: error.response?.data, qrURI: "" }
+                return { state: "error", message: (error.response?.data as { message: string })?.message ?? "An unexpected error occured." }
             } else {
                 console.error(e);
-                return { status: "error", success: false, message: "Unknown error", qrURI: "" }
+                return { state: "error", message: "Unknown error" }
             }
         }
-    }, [token])
+    }, [])
 
     const loginTOTP = useCallback(async (code: string) => {
         try {
-            const response = await axios.post("/api/auth/login/2fa", { code, token: otpToken }, { headers: { "Content-Type": "application/json" } })
-            const { token } = response.data;
-            setOtpToken(null);
-            saveToken(token);
-            router.push("/dashboard")
-            return {success: true, message: response.data.message}
+            const response = await axios.post("/api/auth/login/2fa", { code }, { withCredentials: true })
+            const { message } = response.data;
+            router.replace("/dashboard")
+            me();
+            return { state: "success", message }
         } catch (e) {
             if (axios.isAxiosError(e)) {
                 const error = e as AxiosError;
-                return {success: false, message: (error.response?.data as {message: string})?.message}
+                return { state: "error", message: (error.response?.data as { message: string })?.message }
             } else {
                 console.error(e);
-                return {success: false, message: "Internal server error"}
+                return { state: "error", message: "Internal server error" }
             }
         }
-    }, [otpToken])
+    }, [])
 
-    const logout = useCallback(() => {
-        setLoading(true);
-        clearToken();
-        router.push("/auth/login")
-        setLoading(false);
-    }, [clearToken]);
 
     const value = {
         user,
-        token,
         isLoading,
         isAuthenticated: !!user,
         login,
@@ -178,8 +181,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         setupTOTP,
         verifyTOTP,
-        otpToken,
-        loginTOTP
+        loginTOTP,
+        me
     }
 
     if (isLoading) {

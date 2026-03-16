@@ -18,7 +18,7 @@ const DashboardContext = createContext<DashboardContextValue | null>(null);
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     const { log } = useLogger("DashboardProvider");
-    const { token } = useAuth();
+    const { isAuthenticated } = useAuth();
 
     const [settings, setSettings] = useState<Record<string, string> | null>(null);
     const [patchResponse, setPatchResponse] = useState<Record<string, object | string> | null>(null);
@@ -27,7 +27,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     const getSettings = useCallback(async () => {
         try {
-            const response = await axios.get("/api/config", { headers: { "Authorization": `Bearer ${token}` } })
+            const response = await axios.get("/api/config", { withCredentials: true })
             const data = Object.fromEntries(response.data.configList.map((item: { Id: string, configName: string, configValue: string }) => [item.configName, item.configValue]))
             setSettings(data);
             setLoading(false)
@@ -43,7 +43,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setLoading(true);
         setPatchResponse(null);
         try {
-            const response = await axios.patch("/api/config", { updates: patches }, { headers: { "Authorization": `Bearer ${token}` } })
+            const response = await axios.patch("/api/config", { updates: patches }, { withCredentials: true })
             setPatchResponse(response.data);
             getSettings();
         } catch (e) {
@@ -56,7 +56,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }, [])
 
     useEffect(() => {
-        if (token)
+        if (isAuthenticated)
             getSettings();
 
     }, [getSettings])

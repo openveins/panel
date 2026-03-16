@@ -15,42 +15,44 @@ import QRCode from "react-qr-code";
 import {toast} from "sonner";
 
 interface TOTPResponse {
-    status: "verify" | "no_change" | "success" | "error" | "enabled";
+    state: string
     message: string;
-    success: boolean;
-    qrURI: string | null;
+    qr: string | undefined;
 }
 
 export default function ProfileSettingsPage() {
     const { user, setupTOTP, verifyTOTP } = useAuth();
 
-    const [totpEnabled, setTotpEnabled] = useState<boolean>(user != null && user.otpEnabled);
+    //@ts-expect-error
+    const [totpEnabled, setTotpEnabled] = useState<boolean>(user != null && user.settings.otpEnabled);
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
     const [totpResponse, setTotpResponse] = useState<TOTPResponse | null>(null);
     const [totpCode, setTotpCode] = useState<string>("");
 
     const handleSubmit = async () => {
-        if(totpEnabled == (user != null && user.otpEnabled))
+        //@ts-expect-error
+        if(totpEnabled == (user != null && user.settings.otpEnabled))
             return;
 
         setTotpCode("")
         const response = await setupTOTP(totpEnabled);
         setTotpResponse(response);
 
-        if(response.status === "verify")
+        if(response.state === "verify")
             setIsDialogOpen(true);
-        else if(response.status === "error")
+        else if(response.state === "error")
             toast.error("An error occured!", {description: response.message});
         
     }
 
     const handleVerify = async (code: string) => {
         const response = await verifyTOTP(code);
-        setTotpResponse(response);
+        setTotpResponse({state: response.state, message: response.message, qr: totpResponse!.qr});
 
-        if(response.status === "enabled") {
+        if(response.state === "success") {
             setIsDialogOpen(false);
-        }else {
+            setTotpResponse(null);
+        } else {
             toast.error("An error occured!", {description: response.message});
         }
     }
@@ -112,7 +114,7 @@ export default function ProfileSettingsPage() {
                         <DialogDescription>Scan this QR code with your authenticator app and input the code the app generates in the input field.</DialogDescription>
                     </DialogHeader>
                     <div className="flex flex-col items-center gap-10">
-                        {isDialogOpen && <QRCode value={atob(totpResponse?.qrURI!)} className="p-3 bg-white" />}
+                        {isDialogOpen && <QRCode value={atob(totpResponse?.qr!)} className="p-3 bg-white" />}
 
                         <InputOTP maxLength={6} value={totpCode} onChange={(value) => { setTotpCode(value); if(value.length == 6) { handleVerify(value) }}} pattern={REGEXP_ONLY_DIGITS}>
                             <InputOTPGroup>
