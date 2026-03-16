@@ -7,8 +7,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function DashboardPage(){
 
-    const {token} = useAuth();
-
     return(
         <div className="overflow-auto">
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 w-full">
@@ -23,7 +21,6 @@ export default function DashboardPage(){
                 </Breadcrumb>
             </header>
             <main className="m-2">
-                {token ? token : "not logged in"}
             </main>
         </div>
     )
