@@ -1,5 +1,3 @@
-import { api } from '@/api/client';
-import type { ApiResponse } from '@/types/Types';
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/dashboard/nodes')({
