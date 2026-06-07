@@ -30,7 +30,8 @@ interface User {
     username: string,
     email: string,
     settings: {
-        totpEnabled: boolean
+        otpEnabled: boolean,
+        timezone: string
     }
 }
 
@@ -42,5 +43,16 @@ interface LocationResponse {
     updatedAt: Date
 }
 
+interface TOTPToggleResponse {
+    state: string,
+    message: string
+    qr: string
+}
 
-export { type ApiResponse, type User, type SettingControl, type Setting, type SettingsPageProps, type LocationResponse }
+interface TOTPVerifyResponse {
+    state: string,
+    message: string
+}
+
+
+export { type ApiResponse, type User, type SettingControl, type Setting, type SettingsPageProps, type LocationResponse, type TOTPToggleResponse, type TOTPVerifyResponse }

@@ -1,5 +1,5 @@
 import DashboardSidebar from '@/components/sidebar/dashboard-sidebar'
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
@@ -10,7 +10,9 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function RouteComponent() {
-    const pathname = useLocation();
+    const { pathname } = useLocation();
+    const segments = pathname.substring(1).split("/").filter(Boolean)
+
     return (
         <SidebarProvider>
             <DashboardSidebar />
@@ -20,26 +22,26 @@ function RouteComponent() {
                     <Separator orientation="vertical" className="ml-2" />
                     <Breadcrumb className="ml-2">
                         <BreadcrumbList>
-                            {pathname.pathname.substring(1).split("/").map((location, idx) => (
-                                <Fragment key={idx}>
-                                    {(idx == 0) && (
+                            {segments.map((segment, idx) => {
+                                const path = "/" + segments.slice(0, idx + 1).join("/")
+                                const isLast = idx === segments.length - 1
+                                return (
+                                    <Fragment key={path}>
+                                        {idx > 0 && <BreadcrumbSeparator className="hidden md:block" />}
                                         <BreadcrumbItem className="hidden md:block">
-                                            <Link to="/dashboard" className="text-base">{location}</Link>
+                                            {isLast ? (
+                                                <BreadcrumbPage className="text-base capitalize">
+                                                    {segment}
+                                                </BreadcrumbPage>
+                                            ) : (
+                                                <BreadcrumbLink asChild className="text-base capitalize">
+                                                    <Link to={path}>{segment}</Link>
+                                                </BreadcrumbLink>
+                                            )}
                                         </BreadcrumbItem>
-                                    )}
-                                    {(idx != 0) && (
-                                        <>
-                                        <BreadcrumbSeparator className="hidden md:block" />
-                                        <BreadcrumbItem>
-                                            <BreadcrumbPage className="text-base">
-                                                {location}
-                                            </BreadcrumbPage>
-                                        </BreadcrumbItem>
-                                        </>
-                                    )}
-                                </Fragment>
-
-                            ))}
+                                    </Fragment>
+                                )
+                            })}
                         </BreadcrumbList>
                     </Breadcrumb>
                 </header>

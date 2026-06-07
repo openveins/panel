@@ -6,13 +6,15 @@ import type { ApiResponse, User } from '@/types/Types'
 
 
 interface AuthContextValue {
-  user: User | null
-  isAuthenticated: boolean
-  error: string | null
-  login: (email: string, password: string, captcha: string) => Promise<void>
-  register: (username: string, email: string, password: string, captcha: string) => Promise<void>
-  logout: () => Promise<void>
-  clearError: () => void
+  user: User | null;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string, captcha: string) => Promise<void>;
+  register: (username: string, email: string, password: string, captcha: string) => Promise<void>;
+  logout: () => Promise<void>;
+  clearError: () => void;
+  isLoading: boolean;
+  loginOTP: (code: string) => Promise<void>;
 }
 
 interface LoginResponse {
@@ -24,12 +26,14 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children, initialUser }: { children: React.ReactNode, initialUser: User | null }) {
   const [user, setUser] = useState<User | null>(initialUser)
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const clearError = useCallback(() => setError(null), [])
   const navigate = useNavigate();
 
   useEffect(() => {
     setUser(initialUser)
+    setIsLoading(false);
   }, [initialUser])
 
   const login = async (email: string, password: string, captcha: string) => {
@@ -37,7 +41,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     try {
       const { data }: { data: ApiResponse<LoginResponse> } = await api.post('/api/auth/login', { email, password, captcha })
       if (data.success) {
-        if(data.data.totpRequired)
+        if (data.data.totpRequired)
           navigate({ to: "/auth/login/2fa", reloadDocument: true })
         else
           navigate({ to: "/dashboard" })
@@ -73,7 +77,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     try {
       const { data }: { data: { status: string } } = await api.get('/api/auth/logout')
       if (data.status == "OK")
-        navigate({ to: "/", reloadDocument: true})
+        navigate({ to: "/", reloadDocument: true })
     } catch (err) {
       if (isAxiosError(err)) {
         setError(err.response?.data?.message ?? 'Logout failed')
@@ -85,13 +89,24 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     }
   }
 
-  // const loginOTP = async(code: string) => {
-  //   try{
-  //     const {data}: {data: ApiResponse<null>} = await api.post("/api/auth/login/2fa", {code})
+  const loginOTP = async (code: string) => {
+    try {
+      setIsLoading(true);
+      const { data }: { data: ApiResponse<null> } = await api.post("/api/auth/login/2fa", { code })
+      if (data.success) {
+        navigate({ to: "/dashboard", reloadDocument: true })
+      }
+    } catch (err) {
+      if (isAxiosError(err)) {
+        setError(err.response?.data?.message ?? 'Logout failed')
+      } else {
+        setError('An unexpected error occurred')
+      }
+    } finally {
+      setIsLoading(false);
+    }
 
-
-  //   }
-  // }
+  }
 
   const value: AuthContextValue = {
     user,
@@ -100,7 +115,9 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
     login,
     register,
     logout,
-    clearError
+    clearError,
+    isLoading,
+    loginOTP
   }
 
   return (

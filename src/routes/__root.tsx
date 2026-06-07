@@ -7,6 +7,7 @@ import { HealthProvider } from '@/contexts/health-context'
 import type { ApiResponse, User } from '@/types/Types'
 import { DashboardProvider } from '@/contexts/dashboard-context'
 import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
 
 interface RouteContext {
   user: User | null
@@ -52,6 +53,7 @@ function RootComponent() {
           <AuthProvider initialUser={user}>
             <DashboardProvider>
               <Outlet />
+              <Toaster />
               <TanStackRouterDevtools position="bottom-right" />
             </DashboardProvider>
           </AuthProvider>

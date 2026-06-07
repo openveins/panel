@@ -1,5 +1,5 @@
 import { api } from "@/api/client";
-import type { ApiResponse, LocationResponse } from "@/types/Types";
+import type { ApiResponse, LocationResponse, TOTPToggleResponse, TOTPVerifyResponse } from "@/types/Types";
 import { useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import { createContext, useContext, useState } from "react";
@@ -21,6 +21,8 @@ interface DashboardContextValue {
     getLocation: (locationId: string) => Promise<ApiResponse<LocationResponse> | null>;
     updateLocation: (locationId: string, data: {name: string, description: string}) => Promise<ApiResponse<LocationResponse> | null>;
     deleteLocation: (locationId: string) => Promise<boolean>;
+    toggleTOTP: (enable: boolean) => Promise<ApiResponse<TOTPToggleResponse> | null>;
+    verifyTOTP: (code: string) => Promise<ApiResponse<TOTPVerifyResponse> | null>;
 }
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -145,6 +147,53 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
                 setError('An unexpected error occurred')
             }
             return false;
+        } finally {
+            navigate({replace: true})
+        }
+    }
+
+    
+    // TOTP
+
+    const toggleTOTP = async (enable: boolean): Promise<ApiResponse<TOTPToggleResponse> | null> => {
+        setError(null);
+        try {
+            const {data}: {data: ApiResponse<TOTPToggleResponse>} = await api.patch(`/api/profile/2fa`, {enable})
+            if(data.success){
+                return data;
+            }
+            setError(data.message);
+            return null;
+        }catch(err){
+            if (isAxiosError(err)) {
+                setError(err.response?.data?.message ?? 'Deleting location failed.')
+            } else {
+                setError('An unexpected error occurred')
+            }
+            return null;
+        } finally {
+            navigate({replace: true})
+        }
+    }
+
+    const verifyTOTP = async (code: string): Promise<ApiResponse<TOTPVerifyResponse> | null> => {
+        setError(null);
+        try {
+            const {data}: {data: ApiResponse<TOTPVerifyResponse>} = await api.post(`/api/profile/2fa/verify`, {code})
+            if(data.success){
+                return data;
+            }
+            setError(data.message);
+            return null;
+        } catch(err){
+            if (isAxiosError(err)) {
+                setError(err.response?.data?.message ?? 'Deleting location failed.')
+            } else {
+                setError('An unexpected error occurred')
+            }
+            return null;
+        } finally {
+            navigate({replace: true})
         }
     }
 
@@ -159,7 +208,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         createLocation,
         getLocation,
         updateLocation,
-        deleteLocation
+        deleteLocation,
+        toggleTOTP,
+        verifyTOTP
     }
 
     return (

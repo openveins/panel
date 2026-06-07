@@ -15,10 +15,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
-import { Route as DashboardNodesRouteImport } from './routes/dashboard.nodes'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as DashboardUsersIndexRouteImport } from './routes/dashboard.users.index'
+import { Route as DashboardNodesIndexRouteImport } from './routes/dashboard.nodes.index'
 import { Route as DashboardLocationsIndexRouteImport } from './routes/dashboard.locations.index'
+import { Route as AuthLoginIndexRouteImport } from './routes/auth.login.index'
+import { Route as DashboardUsersUserIdRouteImport } from './routes/dashboard.users.$userId'
+import { Route as DashboardNodesNodeIdRouteImport } from './routes/dashboard.nodes.$nodeId'
 import { Route as DashboardLocationsLocationIdRouteImport } from './routes/dashboard.locations.$locationId'
 import { Route as AuthLogin2faRouteImport } from './routes/auth.login.2fa'
 
@@ -52,11 +56,6 @@ const DashboardProfileRoute = DashboardProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardNodesRoute = DashboardNodesRouteImport.update({
-  id: '/nodes',
-  path: '/nodes',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -67,9 +66,34 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRoute,
 } as any)
+const DashboardUsersIndexRoute = DashboardUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNodesIndexRoute = DashboardNodesIndexRouteImport.update({
+  id: '/nodes/',
+  path: '/nodes/',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardLocationsIndexRoute = DashboardLocationsIndexRouteImport.update({
   id: '/locations/',
   path: '/locations/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthLoginRoute,
+} as any)
+const DashboardUsersUserIdRoute = DashboardUsersUserIdRouteImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNodesNodeIdRoute = DashboardNodesNodeIdRouteImport.update({
+  id: '/nodes/$nodeId',
+  path: '/nodes/$nodeId',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardLocationsLocationIdRoute =
@@ -90,26 +114,33 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/auth/login': typeof AuthLoginRouteWithChildren
   '/auth/register': typeof AuthRegisterRoute
-  '/dashboard/nodes': typeof DashboardNodesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/auth/login/2fa': typeof AuthLogin2faRoute
   '/dashboard/locations/$locationId': typeof DashboardLocationsLocationIdRoute
+  '/dashboard/nodes/$nodeId': typeof DashboardNodesNodeIdRoute
+  '/dashboard/users/$userId': typeof DashboardUsersUserIdRoute
+  '/auth/login/': typeof AuthLoginIndexRoute
   '/dashboard/locations/': typeof DashboardLocationsIndexRoute
+  '/dashboard/nodes/': typeof DashboardNodesIndexRoute
+  '/dashboard/users/': typeof DashboardUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
-  '/auth/login': typeof AuthLoginRouteWithChildren
   '/auth/register': typeof AuthRegisterRoute
-  '/dashboard/nodes': typeof DashboardNodesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard': typeof DashboardIndexRoute
   '/auth/login/2fa': typeof AuthLogin2faRoute
   '/dashboard/locations/$locationId': typeof DashboardLocationsLocationIdRoute
+  '/dashboard/nodes/$nodeId': typeof DashboardNodesNodeIdRoute
+  '/dashboard/users/$userId': typeof DashboardUsersUserIdRoute
+  '/auth/login': typeof AuthLoginIndexRoute
   '/dashboard/locations': typeof DashboardLocationsIndexRoute
+  '/dashboard/nodes': typeof DashboardNodesIndexRoute
+  '/dashboard/users': typeof DashboardUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -118,13 +149,17 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/auth/login': typeof AuthLoginRouteWithChildren
   '/auth/register': typeof AuthRegisterRoute
-  '/dashboard/nodes': typeof DashboardNodesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/auth/login/2fa': typeof AuthLogin2faRoute
   '/dashboard/locations/$locationId': typeof DashboardLocationsLocationIdRoute
+  '/dashboard/nodes/$nodeId': typeof DashboardNodesNodeIdRoute
+  '/dashboard/users/$userId': typeof DashboardUsersUserIdRoute
+  '/auth/login/': typeof AuthLoginIndexRoute
   '/dashboard/locations/': typeof DashboardLocationsIndexRoute
+  '/dashboard/nodes/': typeof DashboardNodesIndexRoute
+  '/dashboard/users/': typeof DashboardUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -134,26 +169,33 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/login'
     | '/auth/register'
-    | '/dashboard/nodes'
     | '/dashboard/profile'
     | '/dashboard/settings'
     | '/dashboard/'
     | '/auth/login/2fa'
     | '/dashboard/locations/$locationId'
+    | '/dashboard/nodes/$nodeId'
+    | '/dashboard/users/$userId'
+    | '/auth/login/'
     | '/dashboard/locations/'
+    | '/dashboard/nodes/'
+    | '/dashboard/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
-    | '/auth/login'
     | '/auth/register'
-    | '/dashboard/nodes'
     | '/dashboard/profile'
     | '/dashboard/settings'
     | '/dashboard'
     | '/auth/login/2fa'
     | '/dashboard/locations/$locationId'
+    | '/dashboard/nodes/$nodeId'
+    | '/dashboard/users/$userId'
+    | '/auth/login'
     | '/dashboard/locations'
+    | '/dashboard/nodes'
+    | '/dashboard/users'
   id:
     | '__root__'
     | '/'
@@ -161,13 +203,17 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/login'
     | '/auth/register'
-    | '/dashboard/nodes'
     | '/dashboard/profile'
     | '/dashboard/settings'
     | '/dashboard/'
     | '/auth/login/2fa'
     | '/dashboard/locations/$locationId'
+    | '/dashboard/nodes/$nodeId'
+    | '/dashboard/users/$userId'
+    | '/auth/login/'
     | '/dashboard/locations/'
+    | '/dashboard/nodes/'
+    | '/dashboard/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,13 +266,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProfileRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/nodes': {
-      id: '/dashboard/nodes'
-      path: '/nodes'
-      fullPath: '/dashboard/nodes'
-      preLoaderRoute: typeof DashboardNodesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/auth/register': {
       id: '/auth/register'
       path: '/register'
@@ -241,11 +280,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/dashboard/users/': {
+      id: '/dashboard/users/'
+      path: '/users'
+      fullPath: '/dashboard/users/'
+      preLoaderRoute: typeof DashboardUsersIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/nodes/': {
+      id: '/dashboard/nodes/'
+      path: '/nodes'
+      fullPath: '/dashboard/nodes/'
+      preLoaderRoute: typeof DashboardNodesIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/locations/': {
       id: '/dashboard/locations/'
       path: '/locations'
       fullPath: '/dashboard/locations/'
       preLoaderRoute: typeof DashboardLocationsIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/auth/login/': {
+      id: '/auth/login/'
+      path: '/'
+      fullPath: '/auth/login/'
+      preLoaderRoute: typeof AuthLoginIndexRouteImport
+      parentRoute: typeof AuthLoginRoute
+    }
+    '/dashboard/users/$userId': {
+      id: '/dashboard/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/dashboard/users/$userId'
+      preLoaderRoute: typeof DashboardUsersUserIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/nodes/$nodeId': {
+      id: '/dashboard/nodes/$nodeId'
+      path: '/nodes/$nodeId'
+      fullPath: '/dashboard/nodes/$nodeId'
+      preLoaderRoute: typeof DashboardNodesNodeIdRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/locations/$locationId': {
@@ -267,10 +341,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthLoginRouteChildren {
   AuthLogin2faRoute: typeof AuthLogin2faRoute
+  AuthLoginIndexRoute: typeof AuthLoginIndexRoute
 }
 
 const AuthLoginRouteChildren: AuthLoginRouteChildren = {
   AuthLogin2faRoute: AuthLogin2faRoute,
+  AuthLoginIndexRoute: AuthLoginIndexRoute,
 }
 
 const AuthLoginRouteWithChildren = AuthLoginRoute._addFileChildren(
@@ -290,21 +366,27 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface DashboardRouteChildren {
-  DashboardNodesRoute: typeof DashboardNodesRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardLocationsLocationIdRoute: typeof DashboardLocationsLocationIdRoute
+  DashboardNodesNodeIdRoute: typeof DashboardNodesNodeIdRoute
+  DashboardUsersUserIdRoute: typeof DashboardUsersUserIdRoute
   DashboardLocationsIndexRoute: typeof DashboardLocationsIndexRoute
+  DashboardNodesIndexRoute: typeof DashboardNodesIndexRoute
+  DashboardUsersIndexRoute: typeof DashboardUsersIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardNodesRoute: DashboardNodesRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardLocationsLocationIdRoute: DashboardLocationsLocationIdRoute,
+  DashboardNodesNodeIdRoute: DashboardNodesNodeIdRoute,
+  DashboardUsersUserIdRoute: DashboardUsersUserIdRoute,
   DashboardLocationsIndexRoute: DashboardLocationsIndexRoute,
+  DashboardNodesIndexRoute: DashboardNodesIndexRoute,
+  DashboardUsersIndexRoute: DashboardUsersIndexRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

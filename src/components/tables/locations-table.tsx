@@ -3,6 +3,7 @@ import { Button } from "../ui/button"
 import { Link } from "@tanstack/react-router"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { Ellipsis } from "lucide-react"
+import { useDashboard } from "@/contexts/dashboard-context"
 
 export type Location = {
     id: string,
@@ -34,10 +35,11 @@ export const columns: ColumnDef<Location>[] = [
     },
     {
         id: "action",
-        cell: () => {
+        cell: ({row}) => {
+            const {deleteLocation} = useDashboard();
             return (
                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger asChild >
                         <Button>
                             <Ellipsis />
                         </Button>
@@ -45,7 +47,7 @@ export const columns: ColumnDef<Location>[] = [
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem variant={"destructive"}>Delete location</DropdownMenuItem>
+                        <DropdownMenuItem variant={"destructive"} onClick={async () => {await deleteLocation(row.original.id)}}>Delete location</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
